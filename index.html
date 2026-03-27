@@ -56,13 +56,14 @@
         .cart-items { flex-grow: 1; overflow-y: auto; margin-top: 20px; }
         .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f1f1; }
 
-        /* Verification Form */
-        .verification-box { background: #fff; border: 1px solid #eee; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
+        /* Verification Form (Hidden by default) */
+        #home-service-form { display: none; background: #fff; border: 1px solid var(--soft-pink); padding: 15px; border-radius: 10px; margin-top: 15px; }
         .verification-box label { font-size: 11px; font-weight: bold; color: var(--primary); display: block; margin-bottom: 5px; }
         .verification-box input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 12px; }
 
         .footer-cart { margin-top: auto; padding: 15px; background: var(--light); border-radius: 15px; }
         .whatsapp-btn { background: #25D366; color: white; text-align: center; padding: 15px; border-radius: 50px; text-decoration: none; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; margin-top: 10px; cursor: pointer; border: none; width: 100%; }
+        .home-service-btn { background: var(--gold); color: white; margin-top: 5px; }
 
         /* Floating Button */
         .cart-float { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 5px 20px rgba(214, 51, 132, 0.4); z-index: 1500; }
@@ -75,7 +76,7 @@
 
 <header>
     <a href="#" class="logo">GLOW & <span>GLAM</span></a>
-    <div style="font-size: 14px; font-weight: 600;"><i class="fas fa-home"></i> Home Services Available</div>
+    <div style="font-size: 14px; font-weight: 600;"><i class="fas fa-magic"></i> Premium Salon</div>
 </header>
 
 <div class="hero">
@@ -139,12 +140,12 @@
         <p style="text-align:center; color:#999; margin-top:50px;">Koi service select nahi ki gayi.</p>
     </div>
 
-    <div class="verification-box">
+    <div id="home-service-form" class="verification-box">
         <label><i class="fas fa-map-marker-alt"></i> Home Address:</label>
         <input type="text" id="cust-address" placeholder="Ghar ka mukammal pata likhein">
         
         <label><i class="fas fa-id-card"></i> Security Verification:</label>
-        <p style="font-size: 10px; color: #666; margin-top: -5px; margin-bottom: 5px;">(WhatsApp par ID Card ki Front aur Back photo bhejna lazmi hai id Card or ap ka Address Match karna bi lazmi hai)</p>
+        <p style="font-size: 10px; color: #666; margin-top: -5px; margin-bottom: 5px;">(WhatsApp par ID Card ki Front aur Back photo bhejna lazmi hai)</p>
     </div>
 
     <div class="footer-cart">
@@ -152,20 +153,35 @@
             <span>Total Bill:</span>
             <span id="total-price">Rs. 0</span>
         </div>
-        <p style="font-size: 10px; margin: 5px 0; color: #d63384; line-height: 1.2;">
-            * 100% Advance Payment & ID Card Verification is mandatory for Home Services.
-        </p>
-        <button class="whatsapp-btn" onclick="sendWhatsApp()">
-            <i class="fab fa-whatsapp"></i> Book Home Service
+        
+        <button class="whatsapp-btn" onclick="sendWhatsApp('Parlor Visit')">
+            <i class="fas fa-store"></i> Book Parlor Visit
+        </button>
+        
+        <button class="whatsapp-btn home-service-btn" onclick="showHomeServiceForm()">
+            <i class="fas fa-home"></i> Book Home Service
         </button>
     </div>
 </div>
 
 <script>
     let cart = [];
+    let isHomeService = false;
 
     function toggleCart() {
         document.getElementById('cart-panel').classList.toggle('active');
+        // Reset form if closed
+        if(!document.getElementById('cart-panel').classList.contains('active')){
+            isHomeService = false;
+            document.getElementById('home-service-form').style.display = 'none';
+        }
+    }
+
+    function showHomeServiceForm() {
+        if(cart.length === 0) return alert("Pehle koi service select karein!");
+        isHomeService = true;
+        document.getElementById('home-service-form').style.display = 'block';
+        alert("Home Service ke liye address aur ID card verification lazmi hai.");
     }
 
     function addToCart(name, price) {
@@ -213,11 +229,14 @@
         totalDisp.innerText = "Rs. " + total.toLocaleString();
     }
 
-    function sendWhatsApp() {
+    function sendWhatsApp(type) {
         if(cart.length === 0) return alert("Pehle koi service select karein!");
         
         let address = document.getElementById('cust-address').value;
-        if(!address) return alert("Meharbani karke Home Address likhein!");
+        
+        if(isHomeService && !address) {
+            return alert("Meharbani karke Home Address likhein!");
+        }
 
         let number = "923217742445"; 
         let total = 0;
@@ -228,16 +247,20 @@
             total += item.price;
         });
 
-        let msg = "*GLOW & GLAM - HOME SERVICE BOOKING*\n";
+        let msg = isHomeService ? "*GLOW & GLAM - HOME SERVICE BOOKING*\n" : "*GLOW & GLAM - PARLOR VISIT BOOKING*\n";
         msg += "------------------------------\n";
         msg += details;
         msg += "------------------------------\n";
-        msg += "*ADDRESS:* " + address + "\n";
-        msg += "*TOTAL ADVANCE:* Rs. " + total.toLocaleString() + "\n";
+        
+        if(isHomeService) {
+            msg += "*ADDRESS:* " + address + "\n";
+            msg += "*SECURITY:* ID Card photos will be sent next.\n";
+        }
+        
+        msg += "*TOTAL TOTAL:* Rs. " + total.toLocaleString() + "\n";
         msg += "------------------------------\n";
-        msg += "Main home service ke liye 100% advance pay karne ko tayyar hoon. Main abhi apne ID Card ki Front aur Back photo share kar rahi hoon.";
+        msg += "Main 100% advance pay karke appointment confirm karna chahti hoon.";
 
-        // Fixed encoding so Glow & Glam shows correctly
         let whatsappUrl = "https://wa.me/" + number + "?text=" + encodeURIComponent(msg);
         window.open(whatsappUrl, '_blank');
     }
